@@ -1,0 +1,33 @@
+projection;
+strict ( 2 );
+use draft;
+
+define behavior for ZORDERS_C_0230 alias Orders
+{
+  use create;
+  use update;
+  use delete;
+
+  use action validateIDAction;
+  use action validateEmailAction;
+  use action validateDeliveryDateAction;
+
+  use action Edit;
+  use action Activate;
+  use action Discard;
+  use action Resume;
+  use action Prepare;
+
+  use association _Items { create; with draft; }
+}
+
+define behavior for ZITEMS_C_0230 alias Items
+{
+  use update;
+  use delete;
+
+  use action validateIDAction;
+  use action validateDiscontinuedDateAction;
+
+  use association _Orders { with draft; }
+}

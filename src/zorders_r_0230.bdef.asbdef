@@ -1,0 +1,92 @@
+managed;
+strict ( 2 );
+with draft;
+
+define behavior for ZORDERS_R_0230 alias Orders
+implementation in class zbp_orders_r_0230 unique
+persistent table zorders_0230
+draft table zorders_d_0230
+lock master
+total etag LastChangedAt
+etag master LocalLastChangedAt
+authorization master ( global )
+{
+  create;
+  update ( features : instance );
+  delete;
+
+  field ( numbering : managed, readonly ) OrderUUID;
+  field ( mandatory ) OrderID, Email;
+  field ( readonly ) CreatedOn;
+  field ( features : instance ) OrderStatus;
+
+  determination setInitData on modify { create; field OrderID, CreatedOn, OrderStatus; }
+  determination setEmailToLower on save { create; update; field Email; }
+
+  validation validateID on save { create; update; field OrderID; }
+  validation validateEmail on save { create; update; field Email; }
+  validation validateDeliveryDate on save { create; update; field DeliveryDate; }
+
+  determine action validateIDAction { validation validateID; }
+  determine action validateEmailAction { validation validateEmail; }
+  determine action validateDeliveryDateAction { validation validateDeliveryDate; }
+
+  side effects
+  {
+    determine action validateIDAction executed on field OrderID affects messages;
+    determine action validateEmailAction executed on field Email affects messages;
+    determine action validateDeliveryDateAction executed on field DeliveryDate affects messages;
+  }
+
+  draft action ( features : instance ) Edit;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Resume;
+
+  draft determine action Prepare
+  {
+    validation validateID;
+    validation validateEmail;
+    validation validateDeliveryDate;
+    validation Items~validateID;
+    validation Items~validateDiscontinuedDate;
+  }
+
+  association _Items { create; with draft; }
+
+  mapping for zorders_0230 corresponding;
+}
+
+define behavior for ZITEMS_R_0230 alias Items
+implementation in class zbp_items_r_0230 unique
+persistent table zitems_0230
+draft table zitems_d_0230
+lock dependent by _Orders
+authorization dependent by _Orders
+etag master LocalLastChangedAt
+{
+  update;
+  delete;
+
+  field ( numbering : managed, readonly ) ItemUUID;
+  field ( mandatory ) ItemID;
+  field ( readonly ) OrderUUID;
+
+  determination setItemID on modify { create; field ItemID; }
+
+  validation validateID on save { create; update; field ItemID; }
+  validation validateDiscontinuedDate on save { create; update; field DiscontinuedDate; }
+
+  determine action validateIDAction { validation validateID; }
+  determine action validateDiscontinuedDateAction { validation validateDiscontinuedDate; }
+
+  side effects
+  {
+    determine action validateIDAction executed on field ItemID affects messages;
+    determine action validateDiscontinuedDateAction executed on field DiscontinuedDate affects messages;
+  }
+
+  association _Orders { with draft; }
+
+  mapping for zitems_0230 corresponding;
+}

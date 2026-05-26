@@ -1,0 +1,67 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: {
+        typeName: 'Order', typeNamePlural: 'Orders',
+        title: { type: #STANDARD, value: 'OrderID' },
+        description: { type: #STANDARD, value: 'OrderStatus' },
+        imageUrl: 'ImageURL'
+    }
+@UI.presentationVariant: [{ visualizations: [{ type: #AS_LINEITEM }], sortOrder: [{ by: 'OrderID', direction: #ASC }] }]
+
+annotate entity ZORDERS_C_0230 with
+{
+  @UI.facet: [{ id: 'Order', type: #IDENTIFICATION_REFERENCE, label: 'Order', position: 10 },
+              { id: 'Items', type: #LINEITEM_REFERENCE, label: 'Items', position: 20, targetElement: '_Items' } ]
+
+  @UI.hidden: true
+  OrderUUID;
+  @UI.lineItem: [{ position: 10, importance: #HIGH }]
+  @UI.identification: [{ position: 10 }]
+  OrderID;
+  @UI.lineItem: [{ position: 20, importance: #HIGH }]
+  @UI.identification: [{ position: 20 }]
+  Email;
+  @UI.lineItem: [{ position: 30, importance: #HIGH }]
+  @UI.identification: [{ position: 30 }]
+  FirstName;
+  @UI.lineItem: [{ position: 40, importance: #HIGH }]
+  @UI.identification: [{ position: 40 }]
+  LastName;
+  @UI.lineItem: [{ position: 50, importance: #MEDIUM }]
+  @UI.identification: [{ position: 50 }]
+  Country;
+  @UI.hidden: true
+  CountryName;
+  @UI.lineItem: [{ position: 60, importance: #MEDIUM }]
+  @UI.identification: [{ position: 60 }]
+  CreatedOn;
+  @UI.lineItem: [{ position: 70, importance: #MEDIUM }]
+  @UI.identification: [{ position: 70 }]
+  DeliveryDate;
+  @UI.lineItem: [{ position: 80, importance: #HIGH }]
+  @UI.identification: [{ position: 80 }]
+  @UI.textArrangement: #TEXT_ONLY
+  OrderStatus;
+  @UI.hidden: true
+  OrderStatusText;
+  @UI.identification: [{ position: 90 }]
+  ImageURL;
+  @UI.lineItem: [{ position: 90, importance: #HIGH }]
+  ImageThumb;
+  @UI.hidden: true
+  LocalCreatedBy;
+  @UI.hidden: true
+  LocalCreatedAt;
+  @UI.hidden: true
+  LocalLastChangedBy;
+  @UI.hidden: true
+  LocalLastChangedAt;
+  @UI.hidden: true
+  LastChangedAt;
+  /* Associations */
+  @UI.hidden: true
+  _Country;
+  @UI.hidden: true
+  _Items;
+  @UI.hidden: true
+  _OrderStatus;
+}

@@ -1,0 +1,53 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: {
+        typeName: 'Item', typeNamePlural: 'Items',
+        title: { type: #STANDARD, value: 'ItemID' }
+    }
+@UI.presentationVariant: [{ visualizations: [{ type: #AS_LINEITEM }], sortOrder: [{ by: 'ItemID', direction: #ASC }] }]
+
+annotate entity ZITEMS_C_0230 with
+{
+  @UI.facet: [{ id: 'Item', type: #IDENTIFICATION_REFERENCE, label: 'Item', position: 10 }]
+
+  @UI.hidden: true
+  ItemUUID;
+  @UI.hidden: true
+  OrderUUID;
+  @UI.lineItem: [{ position: 10 }]
+  @UI.identification: [{ position: 10 }]
+  ItemID;
+  @UI.lineItem: [{ position: 20 }]
+  @UI.identification: [{ position: 20 }]
+  Name;
+  @UI.lineItem: [{ position: 30 }]
+  @UI.identification: [{ position: 30 }]
+  Description;
+  @UI.lineItem: [{ position: 40 }]
+  @UI.identification: [{ position: 40 }]
+  ReleaseDate;
+  @UI.lineItem: [{ position: 50 }]
+  @UI.identification: [{ position: 50 }]
+  DiscontinuedDate;
+  @UI.lineItem: [{ position: 60 }]
+  @UI.identification: [{ position: 60 }]
+  Price;
+  @UI.lineItem: [{ position: 70 }]
+  @UI.identification: [{ position: 70 }]
+  Height;
+  @UI.lineItem: [{ position: 80 }]
+  @UI.identification: [{ position: 80 }]
+  Width;
+  @UI.lineItem: [{ position: 90 }]
+  @UI.identification: [{ position: 90 }]
+  Depth;
+  @UI.lineItem: [{ position: 100 }]
+  @UI.identification: [{ position: 100 }]
+  Quantity;
+  @UI.hidden: true
+  UnitOfMeasure;
+  @UI.hidden: true
+  LocalLastChangedAt;
+  /* Associations */
+  @UI.hidden: true
+  _Orders;
+}

@@ -1,0 +1,7 @@
+@EndUserText.label: 'Service definition - Sales orders'
+define service ZSD_SALESORDERS_0230 {
+  expose ZORDERS_C_0230;
+  expose ZITEMS_C_0230;
+  expose I_CountryVH;
+  expose ZORDERSTATUS_VH_0230;
+}
