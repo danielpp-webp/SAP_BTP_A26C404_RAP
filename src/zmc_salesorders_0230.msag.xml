@@ -12,49 +12,49 @@
      <SPRSL>E</SPRSL>
      <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
      <MSGNR>001</MSGNR>
-     <TEXT>Please enter an email address</TEXT>
-    </T100>
-    <T100>
-     <SPRSL>E</SPRSL>
-     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
-     <MSGNR>002</MSGNR>
-     <TEXT>This email address is already registered</TEXT>
-    </T100>
-    <T100>
-     <SPRSL>E</SPRSL>
-     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
-     <MSGNR>003</MSGNR>
-     <TEXT>The email address format is not valid (e.g., name@example.com)</TEXT>
-    </T100>
-    <T100>
-     <SPRSL>E</SPRSL>
-     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
-     <MSGNR>004</MSGNR>
-     <TEXT>Delivery date must not precede the creation date</TEXT>
-    </T100>
-    <T100>
-     <SPRSL>E</SPRSL>
-     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
-     <MSGNR>005</MSGNR>
-     <TEXT>Discontinued date must not precede the release date</TEXT>
-    </T100>
-    <T100>
-     <SPRSL>E</SPRSL>
-     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
-     <MSGNR>006</MSGNR>
      <TEXT>Please enter an ID</TEXT>
     </T100>
     <T100>
      <SPRSL>E</SPRSL>
      <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
+     <MSGNR>002</MSGNR>
+     <TEXT>ID &amp;1 already exists</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
+     <MSGNR>003</MSGNR>
+     <TEXT>Please enter an email address</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
+     <MSGNR>004</MSGNR>
+     <TEXT>Email &amp;1 already exists</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
+     <MSGNR>005</MSGNR>
+     <TEXT>Invalid email format. Please use the following (e.g., name@example.com</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
+     <MSGNR>006</MSGNR>
+     <TEXT>Delivery date cannot be before creation date</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
      <MSGNR>007</MSGNR>
-     <TEXT>This ID is already registered</TEXT>
+     <TEXT>Item ID &amp;1 already exists</TEXT>
     </T100>
     <T100>
      <SPRSL>E</SPRSL>
      <ARBGB>ZMC_SALESORDERS_0230</ARBGB>
      <MSGNR>008</MSGNR>
-     <TEXT>This ID is already being registered</TEXT>
+     <TEXT>Discontinued date cannot be before release date</TEXT>
     </T100>
    </T100>
   </asx:values>

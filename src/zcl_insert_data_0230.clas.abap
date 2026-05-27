@@ -31,7 +31,6 @@ CLASS zcl_insert_data_0230 IMPLEMENTATION.
       out->write( 'Error inserting data (zorderstatu_0230)' ).
     ENDIF.
 
-
     DATA lt_orders TYPE TABLE OF zorders_0230.
 
     TRY.

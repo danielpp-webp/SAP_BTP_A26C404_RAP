@@ -16,9 +16,11 @@ authorization master ( global )
   delete;
 
   field ( numbering : managed, readonly ) OrderUUID;
-  field ( mandatory ) OrderID, Email;
+  field ( features : instance ) OrderID;
+  field ( mandatory ) Email;
   field ( readonly ) CreatedOn;
   field ( features : instance ) OrderStatus;
+  field ( features : instance ) ImageURL;
 
   determination setInitData on modify { create; field OrderID, CreatedOn, OrderStatus; }
   determination setEmailToLower on save { create; update; field Email; }

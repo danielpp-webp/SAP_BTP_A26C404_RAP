@@ -51,17 +51,19 @@ CLASS lhc_items IMPLEMENTATION.
 
     lr_order_uuid = VALUE #( FOR lw_item IN items
                             ( sign = 'I' option = 'EQ' low = lw_item-OrderUUID ) ).
+    SORT lr_order_uuid BY low.
+    DELETE ADJACENT DUPLICATES FROM lr_order_uuid.
 
     " Fetch max existing item ID of each order
     " Query table ZORDERS_0230
-    SELECT orderuuid, MAX( CAST( itemid AS INT4 ) ) AS max_id
+    SELECT orderuuid, MAX( itemid ) AS max_id
         FROM zitems_0230
         WHERE orderuuid IN @lr_order_uuid
         GROUP BY orderuuid
         INTO TABLE @ht_persisted_max_ids.
 
     " Query table ZORDERS_D_0230
-    SELECT orderuuid, MAX( CAST( itemid AS INT4 ) ) AS max_id
+    SELECT orderuuid, MAX( itemid ) AS max_id
         FROM zitems_d_0230
         WHERE orderuuid IN @lr_order_uuid
         GROUP BY orderuuid
@@ -121,17 +123,23 @@ CLASS lhc_items IMPLEMENTATION.
     DATA:
       lr_order_uuid TYPE RANGE OF sysuuid_x16,
       lr_item_uuid  TYPE RANGE OF sysuuid_x16,
-      ht_items_id   TYPE HASHED TABLE OF item_id WITH UNIQUE KEY order_uuid item_id.
+      ht_items_id   TYPE HASHED TABLE OF item_id WITH UNIQUE KEY order_uuid item_id,
+      lt_seen       type table of zde_id_0230.
 
     lr_order_uuid = VALUE #( FOR lw_item IN items
                             ( sign = 'I' option = 'EQ' low = lw_item-OrderUUID ) ).
+    SORT lr_order_uuid BY low.
+    DELETE ADJACENT DUPLICATES FROM lr_order_uuid.
+
     lr_item_uuid = VALUE #( FOR lw_item IN items
                             ( sign = 'I' option = 'EQ' low = lw_item-ItemUUID ) ).
+    SORT lr_item_uuid BY low.
+    DELETE ADJACENT DUPLICATES FROM lr_item_uuid.
 
     " Fetch already registered IDs of each order
     " Query table ZITEMS_0230
     SELECT DISTINCT
-            OrderUUID, upper( itemID )
+            OrderUUID, itemID
         FROM zitems_0230
         WHERE orderuuid IN @lr_order_uuid
             AND itemuuid NOT IN @lr_item_uuid " Exclude self
@@ -140,50 +148,45 @@ CLASS lhc_items IMPLEMENTATION.
     LOOP AT items INTO DATA(item)
         GROUP BY item-OrderUUID INTO DATA(order_uuid).
 
-      DATA(lt_seen) = VALUE string_table( ).
-
       LOOP AT GROUP order_uuid INTO DATA(order_item).
-
-        DATA(lv_item_ID) = to_upper( order_item-ItemID ).
-
         " Reset messages
         APPEND VALUE #( %tky = order_item-%tky
-                        %state_area = ac_ID_state_area ) TO reported-Items.
+                        %state_area = ac_id_state_area ) TO reported-Items.
 
         " Validate itemID is not empty
-        IF lv_item_ID IS INITIAL.
+        IF order_item-ItemID IS INITIAL.
           APPEND VALUE #( %tky = order_item-%tky ) TO failed-Items.
           APPEND VALUE #( %tky = order_item-%tky
                             %path = VALUE #( Orders-%tky = orders_items[ KEY id source-%tky = order_item-%tky ]-target-%tky )
-                            %state_area = ac_ID_state_area
-                            %msg = new_message( id = ac_message_class number = 006 severity = if_abap_behv_message=>severity-error )
+                            %state_area = ac_id_state_area
+                            %msg = new_message( id = ac_message_class number = 001 severity = if_abap_behv_message=>severity-error )
                             %element-ItemID = if_abap_behv=>mk-on ) TO reported-Items.
           CONTINUE.
         ENDIF.
 
         " Validate ItemID is not already registered
-        IF line_exists( ht_items_id[ order_uuid = order_item-OrderUUID item_id = lv_item_ID ] ).
+        IF line_exists( ht_items_id[ order_uuid = order_item-OrderUUID item_id = order_item-ItemID ] ).
           APPEND VALUE #( %tky = order_item-%tky ) TO failed-Items.
           APPEND VALUE #( %tky = order_item-%tky
                             %path = VALUE #( Orders-%tky = orders_items[ KEY id source-%tky = order_item-%tky ]-target-%tky )
-                            %state_area = ac_ID_state_area
-                            %msg = new_message( id = ac_message_class number = 007 severity = if_abap_behv_message=>severity-error )
+                            %state_area = ac_id_state_area
+                            %msg = new_message( id = ac_message_class number = 007 v1 = order_item-ItemID severity = if_abap_behv_message=>severity-error )
                             %element-ItemID = if_abap_behv=>mk-on ) TO reported-Items.
 *          CONTINUE.
         ENDIF.
 
         " Validate there are not repeated elements on the initial array
-        IF line_exists( lt_seen[ table_line = lv_item_ID ] ).
+        IF line_exists( lt_seen[ table_line = order_item-ItemID ] ).
           " Duplicate found
           APPEND VALUE #( %tky = order_item-%tky ) TO failed-Items.
           APPEND VALUE #( %tky = order_item-%tky
                             %path = VALUE #( Orders-%tky = orders_items[ KEY id source-%tky = order_item-%tky ]-target-%tky )
-                            %state_area = ac_ID_state_area
-                            %msg = new_message( id = ac_message_class number = 008 severity = if_abap_behv_message=>severity-error )
+                            %state_area = ac_id_state_area
+                            %msg = new_message( id = ac_message_class number = 007 v1 = order_item-ItemID severity = if_abap_behv_message=>severity-error )
                             %element-ItemID = if_abap_behv=>mk-on ) TO reported-Items.
 *          CONTINUE.
         ELSE.
-          APPEND lv_item_ID TO lt_seen.
+          APPEND order_item-ItemID TO lt_seen.
         ENDIF.
       ENDLOOP.
 
@@ -217,7 +220,7 @@ CLASS lhc_items IMPLEMENTATION.
           APPEND VALUE #( %tky = item-%tky
                           %path = VALUE #( Orders-%tky = orders_items[ KEY id source-%tky = item-%tky ]-target-%tky )
                           %state_area = ac_disc_date_state_area
-                          %msg = new_message( id = ac_message_class number = 005 severity = if_abap_behv_message=>severity-error )
+                          %msg = new_message( id = ac_message_class number = 008 severity = if_abap_behv_message=>severity-error )
                           %element-DiscontinuedDate = if_abap_behv=>mk-on ) TO reported-Items.
 *         CONTINUE.
         ENDIF.

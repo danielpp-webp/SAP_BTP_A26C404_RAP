@@ -62,8 +62,11 @@ CLASS lhc_Orders IMPLEMENTATION.
 
     lr_order_uuid = VALUE #( FOR lw_order IN orders
                     ( sign = 'I' option = 'EQ' low = lw_order-OrderUUID ) ).
+    SORT lr_order_uuid BY low.
+    DELETE ADJACENT DUPLICATES FROM lr_order_uuid.
 
-    " Validate if order is being created
+    " Determine if order is being created
+    " Query table ZORDERS_0230
     SELECT DISTINCT
             OrderUUID
         FROM zorders_0230
@@ -71,17 +74,17 @@ CLASS lhc_Orders IMPLEMENTATION.
         INTO TABLE @ht_order_uuids.
 
     result = VALUE #( FOR order IN orders
-*                      " Disable editing when the order is Delivered
-*                      LET lv_op_ctrl = SWITCH #( order-OrderStatus
-*                                           WHEN '3' THEN if_abap_behv=>fc-o-disabled " 3 -> Delivered
-*                                           ELSE if_abap_behv=>fc-o-enabled )
-                      " Disable OrderStatus field when the order is being created
-                      LET lv_field_ctrl = COND #( WHEN NOT line_exists( ht_order_uuids[ order_uuid = order-OrderUUID ] ) THEN if_abap_behv=>fc-f-read_only
-                                        ELSE if_abap_behv=>fc-f-unrestricted )
-*                      IN %update            = lv_op_ctrl
-*                         %action-Edit       = lv_op_ctrl
-                      IN  %field-OrderStatus = lv_field_ctrl
-                      ( %tky = order-%tky ) ).
+                      ( %tky = order-%tky
+                        " Disable OrderID field when the order is being updated
+                        %field-OrderID     = COND #( WHEN line_exists( ht_order_uuids[ order_uuid = order-OrderUUID ] ) THEN if_abap_behv=>fc-f-read_only
+                                                ELSE if_abap_behv=>fc-f-mandatory )
+                        " Disable OrderStatus field when the order is being created
+                        %field-OrderStatus = COND #( WHEN NOT line_exists( ht_order_uuids[ order_uuid = order-OrderUUID ] ) THEN if_abap_behv=>fc-f-read_only
+                                                ELSE if_abap_behv=>fc-f-unrestricted )
+                        " Disable ImageURL field when the order is being updated
+                        %field-ImageURL    = COND #( WHEN line_exists( ht_order_uuids[ order_uuid = order-OrderUUID ] ) THEN if_abap_behv=>fc-f-read_only
+                                                ELSE if_abap_behv=>fc-f-unrestricted )
+                         ) ).
   ENDMETHOD.
 
   METHOD setInitData.
@@ -97,12 +100,12 @@ CLASS lhc_Orders IMPLEMENTATION.
 
     " Fetch max existing ID
     " Query table ZORDERS_0230
-    SELECT MAX( CAST( orderid AS INT4 ) )
+    SELECT MAX( orderid )
         FROM zorders_0230
         INTO @DATA(lv_persisted_max_id).
 
     " Query table ZORDERS_D_0230
-    SELECT MAX( CAST( orderid AS INT4 ) )
+    SELECT MAX( orderid )
         FROM zorders_d_0230
         INTO @DATA(lv_draft_max_id).
 
@@ -171,42 +174,44 @@ CLASS lhc_Orders IMPLEMENTATION.
       ht_order_ids  TYPE HASHED TABLE OF order_id WITH UNIQUE KEY order_id.
 
     lr_order_id = VALUE #( FOR lw_order IN orders
-              ( sign = 'I' option = 'EQ' low = to_upper( lw_order-OrderID ) ) ).
+              ( sign = 'I' option = 'EQ' low =  lw_order-OrderID ) ).
+    SORT lr_order_id BY low.
+    DELETE ADJACENT DUPLICATES FROM lr_order_id.
 
     lr_order_uuid = VALUE #( FOR lw_order IN orders
               ( sign = 'I' option = 'EQ' low = lw_order-OrderUUID ) ).
+    SORT lr_order_uuid BY low.
+    DELETE ADJACENT DUPLICATES FROM lr_order_uuid.
 
     " Fetch already registered IDs
     " Query table ZORDERS_0230
-    SELECT DISTINCT upper( orderid )
+    SELECT DISTINCT orderid
         FROM zorders_0230
-        WHERE upper( orderid ) IN @lr_order_id
+        WHERE orderid IN @lr_order_id
             AND orderuuid NOT IN @lr_order_uuid " Exclude self
         INTO TABLE @ht_order_ids.
 
     LOOP AT orders INTO DATA(order).
-      DATA(lv_ORDER_ID) = to_upper( order-OrderID ).
-
       " Reset messages
       APPEND VALUE #( %tky = order-%tky
-                      %state_area = ac_ID_state_area ) TO reported-Orders.
+                      %state_area = ac_id_state_area ) TO reported-Orders.
 
       " Validate OrderID is not empty
-      IF lv_ORDER_ID IS INITIAL.
+      IF order-OrderID IS INITIAL.
         APPEND VALUE #( %tky = order-%tky ) TO failed-Orders.
         APPEND VALUE #( %tky = order-%tky
-                        %state_area = ac_ID_state_area
-                        %msg = new_message( id = ac_message_class number = 006 severity = if_abap_behv_message=>severity-error )
+                        %state_area = ac_id_state_area
+                        %msg = new_message( id = ac_message_class number = 001 severity = if_abap_behv_message=>severity-error )
                         %element-OrderID = if_abap_behv=>mk-on ) TO reported-Orders.
         CONTINUE.
       ENDIF.
 
       " Validate OrderID is not already registered
-      IF line_exists( ht_order_ids[ order_id = lv_ORDER_ID ] ).
+      IF line_exists( ht_order_ids[ order_id = order-OrderID ] ).
         APPEND VALUE #( %tky = order-%tky ) TO failed-Orders.
         APPEND VALUE #( %tky = order-%tky
-                        %state_area = ac_ID_state_area
-                        %msg = new_message( id = ac_message_class number = 007 severity = if_abap_behv_message=>severity-error )
+                        %state_area = ac_id_state_area
+                        %msg = new_message( id = ac_message_class number = 002 v1 = order-OrderID severity = if_abap_behv_message=>severity-error )
                         %element-OrderID = if_abap_behv=>mk-on ) TO reported-Orders.
 *        CONTINUE.
       ENDIF.
@@ -236,9 +241,13 @@ CLASS lhc_Orders IMPLEMENTATION.
 
     lr_email = VALUE #( FOR lw_order IN orders
                             ( sign = 'I' option = 'EQ' low = to_lower( lw_order-Email ) ) ).
+    SORT lr_email BY low.
+    DELETE ADJACENT DUPLICATES FROM lr_email.
 
     lr_order_uuid = VALUE #( FOR lw_order IN orders
                          ( sign = 'I' option = 'EQ' low = lw_order-OrderUUID ) ).
+    SORT lr_order_uuid BY low.
+    DELETE ADJACENT DUPLICATES FROM lr_order_uuid.
 
     " Fetch already registered emails
     " Query table ZORDERS_0230
@@ -262,7 +271,7 @@ CLASS lhc_Orders IMPLEMENTATION.
         APPEND VALUE #( %tky = order-%tky ) TO failed-Orders.
         APPEND VALUE #( %tky = order-%tky
                         %state_area = ac_email_state_area
-                        %msg = new_message( id = ac_message_class number = 001 severity = if_abap_behv_message=>severity-error )
+                        %msg = new_message( id = ac_message_class number = 003 severity = if_abap_behv_message=>severity-error )
                         %element-Email = if_abap_behv=>mk-on ) TO reported-Orders.
         CONTINUE.
       ENDIF.
@@ -272,7 +281,7 @@ CLASS lhc_Orders IMPLEMENTATION.
         APPEND VALUE #( %tky = order-%tky ) TO failed-Orders.
         APPEND VALUE #( %tky = order-%tky
                         %state_area = ac_email_state_area
-                        %msg = new_message( id = ac_message_class number = 002 severity = if_abap_behv_message=>severity-error )
+                        %msg = new_message( id = ac_message_class number = 004 v1 = lv_email severity = if_abap_behv_message=>severity-error )
                         %element-Email = if_abap_behv=>mk-on ) TO reported-Orders.
         CONTINUE.
       ENDIF.
@@ -282,7 +291,7 @@ CLASS lhc_Orders IMPLEMENTATION.
         APPEND VALUE #( %tky = order-%tky ) TO failed-Orders.
         APPEND VALUE #( %tky = order-%tky
                         %state_area = ac_email_state_area
-                        %msg = new_message( id = ac_message_class number = 003 severity = if_abap_behv_message=>severity-error )
+                        %msg = new_message( id = ac_message_class number = 005 severity = if_abap_behv_message=>severity-error )
                         %element-Email = if_abap_behv=>mk-on ) TO reported-Orders.
 *        CONTINUE.
       ENDIF.
@@ -308,7 +317,7 @@ CLASS lhc_Orders IMPLEMENTATION.
           APPEND VALUE #( %tky = order-%tky ) TO failed-Orders.
           APPEND VALUE #( %tky = order-%tky
                           %state_area = ac_delivery_date_state_area
-                          %msg = new_message( id = ac_message_class number = 004 severity = if_abap_behv_message=>severity-error )
+                          %msg = new_message( id = ac_message_class number = 006 severity = if_abap_behv_message=>severity-error )
                           %element-DeliveryDate = if_abap_behv=>mk-on ) TO reported-Orders.
 *          CONTINUE.
         ENDIF.
